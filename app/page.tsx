@@ -19,8 +19,9 @@ export default function Home() {
         {/* You can add a slider component here later */}
       </div>
 
-      {/* <FeaturedProducts/> */}
       <PopularProducts/>
+
+      <FeaturedProducts/>
 
       {/* Middle Banner - JBL Speaker Section */}
       <div className="mx-6 md:mx-16 my-16 bg-[#EAEFF5] rounded-xl px-8 py-12 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">

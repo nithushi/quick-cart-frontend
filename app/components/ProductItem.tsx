@@ -7,7 +7,7 @@ interface ProductProps {
     id: string;
     name: string;
     price: number;
-    image: (string | StaticImageData)[];
+    image: string | StaticImageData;
     description: string;
     category?: string;
     rating?: number; // Rating එක optional විදියට දැම්මා (නැත්නම් default 4ක් පෙන්වයි)
@@ -27,11 +27,14 @@ const ProductItem = ({ id, name, price, image, description, rating = 4 }: Produc
 
             {/* Product Image */}
             <Image 
-                src={image[0]} 
+                src={image} 
                 alt={name} 
                 width={200} 
                 height={200}
-                className="object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply" 
+                className="object-contain group-hover:scale-105 transition-transform duration-500 mix-blend-multiply"
+                
+                // මෙන්න මේ පේළිය එකතු කරන්න:
+                unoptimized={true} 
             />
         </div>
 
