@@ -1,13 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
   reactCompiler: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '8080',
+        pathname: '/images/**',
+      },
+    ],
+  },
 };
 
 export default nextConfig;
-
-
 
 
 // import type { NextConfig } from "next";
@@ -15,22 +22,6 @@ export default nextConfig;
 // const nextConfig: NextConfig = {
 //   /* config options here */
 //   reactCompiler: true,
-//   images: {
-//     remotePatterns: [
-//       {
-//         protocol: 'https',
-//         hostname: 'raw.githubusercontent.com',
-//         port: '',
-//         pathname: '/**',
-//       },
-//       {
-//         protocol: 'https',
-//         hostname: 'res.cloudinary.com', 
-//         port: '',
-//         pathname: '/**',
-//       },
-//     ],
-//   },
 // };
 
 // export default nextConfig;

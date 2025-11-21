@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Hero from './components/Hero';
 import FeaturedProducts from './components/FeaturedProducts';
+import PopularProducts from './components/PopularProducts';
 import Image from 'next/image';
 import { assets } from '@/app/assets/assets';
 
@@ -14,11 +15,12 @@ export default function Home() {
       
       {/* Popular Products Section (Placeholder for now) */}
       <div className="px-6 md:px-16 py-8">
-        <h3 className="text-xl font-semibold text-gray-700 mb-4 font-poppins">Popular products</h3>
+        <h3 className="text-xl font-semibold text-gray-700  font-poppins">Popular products</h3>
         {/* You can add a slider component here later */}
       </div>
 
       {/* <FeaturedProducts/> */}
+      <PopularProducts/>
 
       {/* Middle Banner - JBL Speaker Section */}
       <div className="mx-6 md:mx-16 my-16 bg-[#EAEFF5] rounded-xl px-8 py-12 flex flex-col md:flex-row items-center justify-between relative overflow-hidden">
