@@ -29,7 +29,7 @@ const FeaturedProducts = () => {
   ];
 
   return (
-    <div className="px-6 md:px-16 py-16">
+    <div className="px-6 md:px-16 py-5">
       {/* Header Section */}
       <div className="flex flex-col items-center mb-12">
         <h2 className="text-3xl font-bold text-gray-800 text-center font-poppins">
@@ -56,7 +56,7 @@ const FeaturedProducts = () => {
             />
 
             {/* Dark Gradient Overlay (for text readability) */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-90"></div>
+            <div className="absolute inset-0 from-black/80 via-black/20 to-transparent opacity-90"></div>
 
             {/* Text Content */}
             <div className="absolute bottom-0 left-0 w-full p-8 flex flex-col items-start gap-3">

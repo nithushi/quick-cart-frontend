@@ -13,12 +13,6 @@ export default function Home() {
       <Navbar /> 
       <Hero />
       
-      {/* Popular Products Section (Placeholder for now) */}
-      <div className="px-6 md:px-16 py-8">
-        <h3 className="text-xl font-semibold text-gray-700  font-poppins">Popular products</h3>
-        {/* You can add a slider component here later */}
-      </div>
-
       <PopularProducts/>
 
       <FeaturedProducts/>
