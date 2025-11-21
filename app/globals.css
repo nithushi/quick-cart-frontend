@@ -1,1 +1,6 @@
 @import "tailwindcss";
+
+@theme {
+  --font-poppins: var(--font-poppins);
+  --font-roboto: var(--font-roboto), sans-serif;
+}
