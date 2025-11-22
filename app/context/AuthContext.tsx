@@ -8,6 +8,7 @@ interface AuthContextType {
   login: (token: string, email: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
+  isLoading: boolean; // 1. අලුතින් එකතු කළා
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -15,25 +16,28 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true); // 2. Loading state එක
   const router = useRouter();
 
   useEffect(() => {
-    // App එක Load වෙනකොට localStorage එක check කරනවා
-    if (typeof window !== 'undefined') {
-      const storedToken = localStorage.getItem('token');
-      const storedUser = localStorage.getItem('userEmail');
-      
-      if (storedToken) {
-        console.log("AuthContext: Token Found ->", storedToken);
-        setToken(storedToken);
-        if (storedUser) setUser(storedUser);
-      }
-    }
+    const initializeAuth = async () => {
+        // App එක Load වෙනකොට localStorage එක check කරනවා
+        if (typeof window !== 'undefined') {
+          const storedToken = localStorage.getItem('token');
+          const storedUser = localStorage.getItem('userEmail');
+          
+          if (storedToken) {
+            setToken(storedToken);
+            if (storedUser) setUser(storedUser);
+          }
+        }
+        setIsLoading(false); // 3. Check කරලා ඉවර වුනාම Loading නවත්වනවා
+    };
+
+    initializeAuth();
   }, []);
 
   const login = (newToken: string, email: string) => {
-    console.log("AuthContext: Login function called with token ->", newToken);
-    
     setToken(newToken);
     setUser(email);
 
@@ -56,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token }}>
+    <AuthContext.Provider value={{ user, token, login, logout, isAuthenticated: !!token, isLoading }}>
       {children}
     </AuthContext.Provider>
   );
