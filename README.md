@@ -89,8 +89,7 @@ quick-cart-frontend/
 └── public/            # Static assets and icons
 
 ````
-👀 Snips
-1. Home Page & Hero Section
-2. Shopping Cart & Product Details
+Demo
+`[Watch Demo Video](public/demo.mp4)`
 
 Made by M. Nithushi Shavindi (Full Stack Developer)

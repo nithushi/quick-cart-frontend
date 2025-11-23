@@ -56,13 +56,13 @@ const Login = () => {
     <div className="flex min-h-screen w-full bg-gray-50">
       {/* Left Side */}
       <div className="hidden md:flex w-1/2 relative bg-black items-center justify-center overflow-hidden">
-        <Image 
+        {/* <Image 
             src={assets.login} 
             alt="Login Background" 
             fill 
             className="object-cover opacity-80"
             priority
-        />
+        /> */}
         <div className="absolute z-10 text-white text-center px-10">
             <h1 className="text-5xl font-bold mb-4">Welcome Back!</h1>
             <p className="text-lg text-gray-200">
