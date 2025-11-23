@@ -92,9 +92,12 @@ quick-cart-frontend/
 Snips
 
 1.Home & Hero Sections
+<img width="1920" height="3108" alt="screencapture-localhost-3000-2025-11-23-12_40_16" src="https://github.com/user-attachments/assets/ffb8c5f0-aa70-4f66-9292-9e8fd5d0d7d8" />
 
 2. Shop Section
+<img width="1920" height="2058" alt="screencapture-localhost-3000-shop-2025-11-23-12_40_30" src="https://github.com/user-attachments/assets/e738cf80-ed5c-4745-a28e-4731393381f3" />
 
 3. Cart & Place Order Section
+<img width="1920" height="1228" alt="screencapture-localhost-3000-cart-2025-11-23-12_42_00" src="https://github.com/user-attachments/assets/7e82abdd-8f38-4492-9e29-f232138f5459" />
 
 Made by M. Nithushi Shavindi (Full Stack Developer)
