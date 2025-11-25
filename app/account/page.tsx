@@ -8,7 +8,7 @@ import Image from 'next/image';
 import { assets } from '@/app/assets/assets';
 import toast from 'react-hot-toast';
 
-// Types
+// --- Types ---
 interface UserProfile {
     firstName: string;
     lastName: string;
@@ -36,7 +36,8 @@ interface Address {
 const Account = () => {
     const { token, isAuthenticated, logout, isLoading } = useAuth();
     const router = useRouter();
-    
+
+    // --- State ---
     const [profile, setProfile] = useState<UserProfile | null>(null);
     const [orders, setOrders] = useState<Order[]>([]);
     const [address, setAddress] = useState<Address | null>(null);
@@ -44,14 +45,15 @@ const Account = () => {
     const [activeTab, setActiveTab] = useState('profile');
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Icons අයින් කරලා Menu Items ටික හැදුවා
+    // --- Sidebar Menu ---
     const menuItems = [
-        { id: 'profile', label: 'My Profile' },
-        { id: 'orders', label: 'My Orders' },
-        { id: 'address', label: 'Address Book' },
-        { id: 'settings', label: 'Settings' },
+        { id: 'profile', label: 'My Profile', icon: assets.user_icon },
+        { id: 'orders', label: 'My Orders', icon: assets.box_icon },
+        { id: 'address', label: 'Address Book', icon: assets.my_location_image },
+        { id: 'settings', label: 'Settings', icon: assets.menu_icon },
     ];
 
+    // --- Fetch Data ---
     useEffect(() => {
         if (isLoading) return;
 
@@ -64,22 +66,27 @@ const Account = () => {
             try {
                 const headers = { 'Authorization': `Bearer ${token}` };
 
-                // 1. Fetch Profile
+                // 1. Profile
                 const profileRes = await fetch('http://localhost:8080/api/users/profile', { headers });
                 if (profileRes.ok) setProfile(await profileRes.json());
 
-                // 2. Fetch Orders
+                // 2. Orders
                 const ordersRes = await fetch('http://localhost:8080/api/orders', { headers });
-                if (ordersRes.ok) setOrders((await ordersRes.json()).slice(0, 5));
-
-                // 3. Fetch Address from DB
-                const addressRes = await fetch('http://localhost:8080/api/users/address', { headers });
-                if (addressRes.ok && addressRes.status !== 204) {
-                    setAddress(await addressRes.json());
+                if (ordersRes.ok) {
+                    const data = await ordersRes.json();
+                    setOrders(Array.isArray(data) ? data.slice(0, 5) : []);
                 }
 
+                // 3. Address
+                const addressRes = await fetch('http://localhost:8080/api/users/address', { headers });
+                if (addressRes.ok) {
+                    setAddress(await addressRes.json());
+                } else {
+                    setAddress(null);
+                }
             } catch (error) {
                 console.error("Error fetching data:", error);
+                toast.error("Failed to load profile data.");
             } finally {
                 setLoading(false);
             }
@@ -88,6 +95,7 @@ const Account = () => {
         fetchData();
     }, [isAuthenticated, token, router, isLoading]);
 
+    // --- Handlers ---
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
@@ -97,87 +105,124 @@ const Account = () => {
         const toastId = toast.loading("Uploading...");
 
         try {
-            // Backend implementation needed for image upload
-            toast.success("Image selected (Backend needed)", { id: toastId });
+            const response = await fetch('http://localhost:8080/api/users/profile/image', {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` },
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                setProfile(prev => prev ? { ...prev, imageUrl: data.imageUrl } : null);
+                toast.success("Updated!", { id: toastId });
+            } else {
+                toast.error("Failed", { id: toastId });
+            }
         } catch (error) {
-            console.error(error);
             toast.error("Error", { id: toastId });
         }
     };
 
-    if (isLoading || loading) return <div className="min-h-screen flex items-center justify-center font-poppins text-gray-500 text-lg">Loading dashboard...</div>;
+    if (isLoading || loading) {
+        return <div className="min-h-screen flex items-center justify-center font-poppins text-gray-400 animate-pulse">Loading...</div>;
+    }
 
+    // --- Render Content Section ---
     const renderContent = () => {
         switch (activeTab) {
             case 'profile':
+            // ... existing imports and code ...
+
+            case 'profile':
                 return (
-                    <div className="bg-white p-8 rounded-m shadow-sm border border-gray-100 animate-fadeIn">
-                        <div className="flex justify-between items-end border-b border-gray-100 pb-5 mb-8 font-poppins">
-                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900 font-poppins">Personal Information</h3>
-                                <p className="text-sm text-gray-500 mt-1 font-roboto">Manage your personal details</p>
-                             </div>
-                             <span className="text-[10px] font-bold tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100 uppercase">Verified User</span>
+                    <div className="bg-white p-10 rounded-3xl border border-gray-200 shadow-sm">
+
+                        {/* Header */}
+                        <div className="mb-10">
+                            <h2 className="text-2xl font-semibold text-gray-900">Profile Information</h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                Update your personal profile details securely.
+                            </p>
                         </div>
-                       
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 font-poppins">
-                            <div className='space-y-2'>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">First Name</label>
-                                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 font-medium font-roboto">{profile?.firstName}</div>
-                            </div>
-                            <div className='space-y-2'>
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Last Name</label>
-                                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 font-medium font-roboto">{profile?.lastName}</div>
-                            </div>
-                            <div className="md:col-span-2 space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Email Address</label>
-                                <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 text-gray-800 font-medium font-roboto flex justify-between items-center">
-                                    {profile?.email}
-                                    <Image src={assets.checkmark} alt="verified" className="w-5 opacity-60" />
+
+                        {/* Profile Fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-500 uppercase">First Name</label>
+                                <div className="p-4 bg-gray-50 rounded-xl text-gray-800 border border-gray-200">
+                                    {profile?.firstName}
                                 </div>
                             </div>
+
+                            <div className="space-y-2">
+                                <label className="text-xs font-semibold text-gray-500 uppercase">Last Name</label>
+                                <div className="p-4 bg-gray-50 rounded-xl text-gray-800 border border-gray-200">
+                                    {profile?.lastName}
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="text-xs font-semibold text-gray-500 uppercase">Email Address</label>
+                                <div className="p-4 bg-gray-50 rounded-xl text-gray-800 border border-gray-200 flex items-center justify-between">
+                                    <span>{profile?.email}</span>
+                                    <span className="flex items-center gap-1.5 text-[10px] font-bold bg-green-100 text-green-700 px-3 py-1 rounded-full uppercase">
+                                        <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></span>
+                                        Verified
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="md:col-span-2 space-y-2">
+                                <label className="text-xs font-semibold text-gray-500 uppercase">Account Role</label>
+                                <div className="p-4 bg-gray-50 rounded-xl text-gray-800 border border-gray-200 uppercase">
+                                    {profile?.role}
+                                </div>
+                            </div>
+
                         </div>
+
+                        {/* Edit Button */}
+                        <div className="flex justify-end mt-10">
+                            <button className="text-sm font-semibold text-white bg-gray-900 px-6 py-3 rounded-lg hover:bg-black transition">
+                                Edit Profile
+                            </button>
+                        </div>
+
                     </div>
                 );
 
+
             case 'orders':
                 return (
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-fadeIn">
-                        <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-5">
-                            <div>
-                                <h3 className="text-2xl font-bold text-gray-900 font-poppins">Recent Orders</h3>
-                                <p className="text-sm text-gray-500 mt-1 font-roboto">Track and manage your orders</p>
-                            </div>
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm animate-fadeIn">
+                        <div className="mb-8">
+                            <h2 className="text-2xl font-bold text-gray-900 font-poppins">Order History</h2>
+                            <p className="text-sm text-gray-400 mt-1">Check the status of recent orders.</p>
                         </div>
                         {orders.length > 0 ? (
-                            <div className="flex flex-col gap-4">
+                            <div className="space-y-4">
                                 {orders.map((order) => (
-                                    <div key={order.id} className="flex items-center justify-between p-5 border border-gray-200 rounded-xl hover:border-orange-200 transition-colors cursor-pointer bg-white">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center">
-                                                <Image src={assets.box_icon} alt="icon" className="w-5 opacity-50" />
+                                    <div key={order.id} className="flex items-center justify-between p-5 rounded-2xl border border-gray-100 hover:border-orange-200 hover:bg-orange-50/30 hover:shadow-md transition-all duration-300 cursor-pointer group bg-white">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors duration-300">
+                                                <Image src={assets.box_icon} alt="Order" className="w-5 opacity-40 group-hover:opacity-100 group-hover:text-orange-600 transition-all duration-300" />
                                             </div>
                                             <div>
-                                                <p className="text-sm font-bold text-gray-800 font-poppins">Order #{order.id}</p>
-                                                <p className="text-xs text-gray-500 mt-1 font-roboto">{new Date(order.date).toLocaleDateString()}</p>
+                                                <p className="font-bold text-gray-800 text-sm font-poppins group-hover:text-orange-600 transition-colors">Order #{order.id}</p>
+                                                <p className="text-xs text-gray-400 mt-0.5 font-roboto">{new Date(order.date).toLocaleDateString()}</p>
                                             </div>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-base font-bold text-gray-900 font-poppins">LKR {order.totalAmount.toLocaleString()}</p>
-                                            <span className={`text-[10px] font-bold px-3 py-1 rounded-full mt-1.5 inline-block uppercase tracking-wide ${order.status === 'Completed' ? 'text-emerald-700 bg-emerald-100' : 'text-amber-700 bg-amber-100'}`}>
-                                                {order.status}
-                                            </span>
+                                            <p className="font-bold text-gray-900 text-base font-poppins">LKR {order.totalAmount.toLocaleString()}</p>
+                                            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-md inline-block mt-1 uppercase tracking-wide ${order.status === 'Completed' ? 'bg-green-50 text-green-600 border border-green-100' : 'bg-yellow-50 text-yellow-600 border border-yellow-100'}`}>{order.status}</span>
                                         </div>
                                     </div>
                                 ))}
                             </div>
                         ) : (
-                            <div className="text-center py-20 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                    <Image src={assets.box_icon} alt="No Orders" className="w-8 opacity-20 grayscale" />
-                                </div>
-                                <p className="text-gray-500 font-medium font-poppins">No orders placed yet</p>
-                                <button onClick={() => router.push('/')} className="px-6 py-2.5 mt-4 bg-orange-600 text-white text-sm font-medium rounded-lg hover:bg-orange-700 transition">Start Shopping</button>
+                            <div className="text-center py-16 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                                <p className="text-gray-400 text-sm font-medium">No orders placed yet.</p>
                             </div>
                         )}
                     </div>
@@ -185,51 +230,58 @@ const Account = () => {
 
             case 'address':
                 return (
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-fadeIn">
-                        <div className="flex justify-between items-center mb-8 border-b border-gray-100 pb-5">
-                             <div>
-                                <h3 className="text-2xl font-bold text-gray-900 font-poppins">Address Book</h3>
-                                <p className="text-sm text-gray-500 mt-1 font-roboto">Manage your shipping addresses</p>
-                             </div>
-                             <button onClick={() => router.push('/cart')} className=" font-poppins bg-gray-900 text-white text-xs px-4 py-2.5 rounded-lg hover:bg-black transition font-bold flex items-center gap-2">
-                                <span className="text-lg leading-none pb-0.5 font-poppins">+</span> Add New
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm animate-fadeIn relative overflow-hidden">
+                        {/* Decorative Background Circle */}
+                        <div className="absolute top-0 right-0 w-48 h-48 bg-blue-50 rounded-full filter blur-3xl opacity-40 -mr-10 -mt-10 pointer-events-none"></div>
+
+                        <div className="flex justify-between items-start mb-10 relative z-10">
+                            <div>
+                                <h2 className="text-2xl font-bold text-gray-900 font-poppins">Address Book</h2>
+                                <p className="text-sm text-gray-400 mt-1 font-roboto">Manage shipping and delivery addresses.</p>
+                            </div>
+                            <button className="text-xs font-bold text-white bg-gray-900 px-5 py-2.5 rounded-xl hover:bg-black transition shadow-lg shadow-gray-200 flex items-center gap-2 transform hover:-translate-y-0.5 duration-200">
+                                <span className="text-lg leading-none pb-0.5">+</span> Add New
                             </button>
                         </div>
-                        
-                        {/* Address Card - Data from DB */}
+
                         {address ? (
-                             <div className="border p-6 rounded-xl border-gray-200 bg-white relative hover:shadow-md transition-all duration-300 font-poppins">
-                                <span className="absolute top-5 right-5 text-[10px] font-bold bg-orange-50 text-orange-600 px-3 py-1 rounded-full uppercase tracking-wider border border-orange-100 font-poppins">Default</span>
-                                <div className="flex items-start gap-5">
-                                    <div className="mt-1 p-2.5 bg-gray-50 rounded-full">
-                                         <Image src={assets.my_location_image} alt="location" className="w-5 opacity-60" />
+                            <div className="border border-gray-100 bg-gradient-to-br from-white to-gray-50/50 p-7 rounded-3xl relative group hover:shadow-lg hover:border-orange-100 transition-all duration-300 z-10">
+                                <div className="absolute top-5 right-5">
+                                    <span className="text-[10px] font-bold bg-white border border-gray-100 text-gray-500 px-3 py-1.5 rounded-full shadow-sm uppercase tracking-wider group-hover:text-orange-500 group-hover:border-orange-100 transition-colors">Default</span>
+                                </div>
+                                <div className="flex items-start gap-6">
+                                    <div className="mt-1 p-3 bg-white rounded-full shadow-sm group-hover:scale-110 transition-transform duration-300">
+                                        <Image src={assets.my_location_image} alt="Location" className="w-6 opacity-70" />
                                     </div>
-                                    <div className="flex-1 font-poppins">
-                                        <p className="font-bold text-gray-800 text-base mb-1 font-poppins">{profile?.firstName} {profile?.lastName}</p>
-                                        <div className="text-sm text-gray-600 font-poppins leading-relaxed space-y-1">
-                                            <p>{address.street}</p>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 text-lg font-poppins">{profile?.firstName} {profile?.lastName}</h4>
+                                        <div className="text-sm text-gray-500 font-roboto mt-3 leading-relaxed space-y-1">
+                                            <p className="font-medium text-gray-700">{address.street}</p>
                                             <p>{address.city}, {address.zipCode}</p>
-                                            <p className="font-medium text-gray-500">{address.province}</p>
+                                            <p>{address.province}</p>
                                         </div>
-                                        <div className="mt-3 inline-flex items-center gap-2 px-3 py-1.5 bg-gray-50 rounded-lg border border-gray-100">
-                                            <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                                            <p className="text-xs text-gray-700 font-medium font-roboto">{address.phone}</p>
+                                        <div className="mt-5 flex items-center gap-2 text-xs text-gray-600 font-bold bg-white px-4 py-2 rounded-lg border border-gray-100 w-fit shadow-sm group-hover:border-orange-100 transition-colors">
+                                            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                                            {address.phone}
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <div className="mt-5 pt-4 border-t border-gray-100 flex gap-5 text-xs font-bold text-gray-500 uppercase tracking-widest pl-[4.5rem]">
-                                    <button className="hover:text-orange-600 transition duration-200">Edit</button>
-                                    <button className="hover:text-red-500 transition duration-200">Remove</button>
+                                <div className="mt-8 pt-5 border-t border-gray-100 flex gap-6 pl-[4.5rem]">
+                                    <button className="text-xs font-bold text-gray-400 hover:text-orange-600 uppercase tracking-widest transition duration-200 flex items-center gap-1">
+                                        Edit
+                                    </button>
+                                    <button className="text-xs font-bold text-gray-400 hover:text-red-500 uppercase tracking-widest transition duration-200">
+                                        Remove
+                                    </button>
                                 </div>
                             </div>
                         ) : (
-                             <div className="text-center py-16 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                                <div className="w-14 h-14 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                                    <Image src={assets.my_location_image} alt="No Address" className="w-6 opacity-30 grayscale" />
+                            <div className="text-center py-20 bg-gray-50 rounded-3xl border border-dashed border-gray-200 relative z-10">
+                                <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm border border-gray-50">
+                                    <Image src={assets.my_location_image} alt="No Address" className="w-8 opacity-20 grayscale" />
                                 </div>
-                                <p className="text-gray-500 font-medium font-poppins">No address found</p>
-                                <p className="text-xs text-gray-400 mt-1 font-roboto">Please add your delivery address to proceed.</p>
+                                <p className="text-gray-400 text-sm font-medium">No address saved yet.</p>
+                                <p className="text-xs text-gray-300 mt-1">Add a shipping address to speed up checkout.</p>
                             </div>
                         )}
                     </div>
@@ -237,18 +289,19 @@ const Account = () => {
 
             case 'settings':
                 return (
-                    <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 animate-fadeIn">
-                        <h3 className="text-2xl font-bold text-gray-900 mb-8 font-poppins border-b border-gray-100 pb-5">Settings</h3>
-                        <div className="flex flex-col gap-3 max-w-lg">
-                            {['Change Password', 'Notification Preferences'].map((item, index) => (
-                                <button key={index} className="flex justify-between items-center p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition bg-white text-left">
-                                    <span className="text-sm font-medium text-gray-700 font-poppins">{item}</span>
-                                    <Image src={assets.arrow_right_icon_colored} alt="arrow" className="w-4 opacity-40" />
+                    <div className="bg-white p-8 rounded-3xl border border-gray-100 shadow-sm animate-fadeIn">
+                        <div className="mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 font-poppins">Settings</h2>
+                            <p className="text-sm text-gray-400 mt-1">Security and preferences.</p>
+                        </div>
+                        <div className="space-y-3">
+                            {['Change Password', 'Notification Preferences'].map((item, idx) => (
+                                <button key={idx} className="w-full flex items-center justify-between p-5 border border-gray-100 rounded-2xl hover:bg-gray-50 transition text-left group bg-white">
+                                    <span className="text-sm font-medium text-gray-600 group-hover:text-gray-900 font-poppins">{item}</span>
+                                    <Image src={assets.arrow_right_icon_colored} alt="arrow" className="w-4 opacity-30 group-hover:opacity-100 group-hover:translate-x-1 transition" />
                                 </button>
                             ))}
-                            <button className="mt-4 w-full py-3.5 border border-red-200 bg-red-50 rounded-xl hover:bg-red-100 transition text-center">
-                                <span className="text-sm font-bold text-red-600">Delete Account</span>
-                            </button>
+                            <button className="w-full p-4 border border-red-100 bg-red-50/30 rounded-2xl text-red-500 text-sm font-bold hover:bg-red-50 transition mt-4">Delete Account</button>
                         </div>
                     </div>
                 );
@@ -257,79 +310,74 @@ const Account = () => {
         }
     };
 
+    // --- Main Render ---
     return (
-        <div className='bg-[#F8F9FA] min-h-screen font-sans pb-20'>
+        <div className='bg-[#F8F9FA] min-h-screen pb-20'>
             <Navbar />
-            
+
             <div className="max-w-7xl mx-auto px-6 md:px-12 py-12">
-                <div className="mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 font-poppins">My Account</h1>
+                {/* Header Section */}
+                <div className="mb-12">
+                    <h1 className="text-4xl font-extrabold text-gray-900 font-poppins tracking-tight">My Account</h1>
                     <p className="text-gray-500 text-sm mt-2 font-roboto">Welcome back, {profile?.firstName}!</p>
                 </div>
 
-                <div className="flex flex-col lg:flex-row gap-8 items-start">
-                    
-                    {/* Clean & Simple Sidebar */}
-                    <div className="w-full lg:w-1/3">
-                        <div className="bg-white p-6 rounded-m shadow-sm border border-gray-100 sticky top-24">
-                            {/* Profile Image */}
-                            <div className="flex flex-col items-center mb-6">
-                                <div className="w-24 h-24 rounded-full flex items-center justify-center text-orange-600 text-3xl font-bold mb-4 font-poppins border-4 border-orange-50 bg-orange-100 relative overflow-hidden group cursor-pointer">
+                <div className="flex flex-col lg:flex-row gap-10 items-start">
+
+                    {/* Sidebar */}
+                    <div className="w-full lg:w-1/4">
+                        <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm sticky top-28">
+
+                            {/* Profile Picture */}
+                            <div className="flex flex-col items-center mb-8 relative group">
+                                <div className="w-28 h-28 rounded-full border-[6px] border-white shadow-xl overflow-hidden relative bg-gray-100 cursor-pointer">
                                     {profile?.imageUrl ? (
                                         <img src={profile.imageUrl} alt="Profile" className="w-full h-full object-cover" />
                                     ) : (
-                                        <span>{profile?.firstName?.charAt(0).toUpperCase()}</span>
+                                        <div className="w-full h-full flex items-center justify-center text-4xl font-bold text-gray-300 bg-gray-50">
+                                            {profile?.firstName?.charAt(0).toUpperCase()}
+                                        </div>
                                     )}
-                                    
-                                    <div 
+                                    {/* Overlay */}
+                                    <div
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                        className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 backdrop-blur-sm"
                                     >
-                                        <Image src={assets.upload_area} alt="edit" className="w-6 h-6 invert brightness-0" />
+                                        <Image src={assets.upload_area} alt="upload" className="w-8 h-8 brightness-0 invert" />
                                     </div>
                                 </div>
-                                
-                                <input 
-                                    type="file" 
-                                    ref={fileInputRef} 
-                                    onChange={handleImageUpload} 
-                                    className="hidden" 
-                                    accept="image/*"
-                                />
+                                <input type="file" ref={fileInputRef} onChange={handleImageUpload} className="hidden" accept="image/*" />
 
-                                <h2 className="text-lg font-bold text-gray-800 font-poppins text-center">{profile?.firstName} {profile?.lastName}</h2>
-                                <p className="text-xs text-gray-400 font-roboto font-medium tracking-wide uppercase mt-1">{profile?.role}</p>
+                                <h2 className="mt-4 text-xl font-bold text-gray-900 font-poppins">{profile?.firstName} {profile?.lastName}</h2>
+                                <p className="text-xs text-gray-500 font-medium mt-1 bg-gray-100 px-3 py-1 rounded-full uppercase tracking-wide">{profile?.role}</p>
                             </div>
-                            
-                            {/* Simple Menu Items (Icons Removed) */}
-                            <nav className="flex flex-col gap-1 font-poppins">
+
+                            {/* Menu */}
+                            <nav className="space-y-2">
                                 {menuItems.map((item) => (
-                                    <button 
+                                    <button
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
-                                        className={`text-left px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                                            activeTab === item.id 
-                                            ? 'bg-orange-600 text-white shadow-md' 
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                        }`}
+                                        className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-medium transition-all duration-300 ${activeTab === item.id
+                                                ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 transform scale-[1.02]'
+                                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                            }`}
                                     >
-                                        <span>{item.label}</span>
+                                        <span className={`w-1.5 h-1.5 rounded-full transition-colors ${activeTab === item.id ? 'bg-orange-500 scale-150' : 'bg-gray-300'}`}></span>
+                                        {item.label}
                                     </button>
                                 ))}
                             </nav>
 
-                            <div className="my-6 border-t border-gray-100 mx-2"></div>
-                            
-                            <button 
-                                onClick={logout}
-                                className="w-full text-left px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition flex items-center gap-3 group"
-                            >
-                                <span className="group-hover:translate-x-1 transition-transform duration-200">Logout</span>
+                            <div className="my-8 border-t border-gray-100 mx-2"></div>
+
+                            <button onClick={logout} className="w-full px-4 py-3.5 rounded-2xl text-sm font-bold text-red-500 bg-red-50 hover:bg-red-100 transition flex items-center justify-center gap-2 group">
+                                Logout
                             </button>
                         </div>
                     </div>
 
-                    {/* Content Area */}
+                    {/* Main Content */}
                     <div className="w-full lg:w-3/4 min-h-[500px]">
                         {renderContent()}
                     </div>
