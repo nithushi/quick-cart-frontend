@@ -5,6 +5,7 @@ import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import { AuthProvider } from "./context/AuthContext"; // 1. Import කරන්න
 import { Toaster } from 'react-hot-toast';
+import { WishlistProvider } from "./context/WishlistContext";
 
 // 1. Konfigurera Poppins
 const poppins = Poppins({
@@ -35,9 +36,10 @@ export default function RootLayout({
       <body className={`${poppins.variable} ${roboto.variable} antialiased font-sans`}>
         <AuthProvider> {/* 2. AuthProvider එකෙන් ඔතන්න */}
           <Toaster position="top-center" reverseOrder={false}/>
-            {/* <Navbar />  */}
+            <WishlistProvider> {/* 2. මෙතනින් ඔතන්න */}
+            <Toaster position="top-center" reverseOrder={false}/>
             {children}
-            {/* <Footer />  */}
+          </WishlistProvider>
         </AuthProvider>
       </body>
     </html>

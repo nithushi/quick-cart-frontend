@@ -1,25 +1,27 @@
 'use client';
-import React, { useState } from 'react'; // useState එකතු කරන්න
+import React, { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { assets } from '@/app/assets/assets';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/app/context/AuthContext';
+import { useWishlist } from '@/app/context/WishlistContext'; // 1. Wishlist Context එක Import කළා
 
 const Navbar = () => {
   const pathname = usePathname();
   const router = useRouter();
-  const { isAuthenticated, user, logout } = useAuth(); 
+  const { isAuthenticated, user, logout } = useAuth();
+  const { wishlist } = useWishlist(); // 2. Wishlist Data ලබා ගත්තා
   
   // Search State
   const [showSearch, setShowSearch] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
   const handleSearch = (e: React.FormEvent) => {
-      e.preventDefault(); // Page reload නවත්වන්න
+      e.preventDefault();
       if(searchQuery.trim()) {
-          router.push(`/shop?search=${searchQuery}`); // Shop පිටුවට යවනවා query එකත් එක්ක
-          setShowSearch(false); // Search box එක වහනවා (optional)
+          router.push(`/shop?search=${searchQuery}`);
+          setShowSearch(false);
       }
   };
 
@@ -68,7 +70,7 @@ const Navbar = () => {
                )}
             </div>
             
-            {/* User Icon & Dropdown (කලින් කෝඩ් එක එහෙමම තියන්න) */}
+            {/* User Icon & Dropdown */}
             <div className='relative group'>
                 <div className='cursor-pointer p-2 hover:bg-gray-100 rounded-full transition'>
                     <Image src={assets.user_icon} alt="user" className="w-5" />
@@ -101,9 +103,22 @@ const Navbar = () => {
                 </div>
             </div>
 
+            {/* 3. Wishlist Icon එකතු කිරීම */}
+            <Link href="/wishlist" className='relative'>
+                <Image src={assets.heart_icon} alt="wishlist" className="w-5" />
+                {wishlist.length > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                        {wishlist.length}
+                    </span>
+                )}
+            </Link>
+
+            {/* Cart Icon */}
             <Link href="/cart" className='relative'>
                 <Image src={assets.cart_icon} alt="cart" className="w-5" />
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">0</span>
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
+                    0
+                </span>
             </Link>
         </div>
     </nav>
