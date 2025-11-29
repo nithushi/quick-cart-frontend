@@ -76,13 +76,15 @@ const Account = () => {
                     const data = await ordersRes.json();
                     setOrders(Array.isArray(data) ? data.slice(0, 5) : []);
                 }
-
                 // 3. Address
                 const addressRes = await fetch('http://localhost:8080/api/users/address', { headers });
-                if (addressRes.ok) {
-                    setAddress(await addressRes.json());
+
+                // Status 204 (No Content) කියන්නේ Address එකක් නෑ කියන එක. එතකොට Error එකක් නෙමෙයි.
+                if (addressRes.ok && addressRes.status !== 204) {
+                    const addressData = await addressRes.json(); // Data තියෙනවා නම් විතරක් JSON කරන්න
+                    setAddress(addressData);
                 } else {
-                    setAddress(null);
+                    setAddress(null); // Address නැත්නම් null කරන්න
                 }
             } catch (error) {
                 console.error("Error fetching data:", error);
@@ -95,31 +97,48 @@ const Account = () => {
         fetchData();
     }, [isAuthenticated, token, router, isLoading]);
 
-    // --- Handlers ---
+    // app/account/page.tsx ඇතුලේ
+
     const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
+        // Validation: Image එකක්ද සහ Size එක 2MB ට අඩුද කියලා බලනවා
+        if (!file.type.startsWith('image/')) {
+            toast.error("Please upload an image file");
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            toast.error("Image size should be less than 2MB");
+            return;
+        }
+
         const formData = new FormData();
         formData.append('image', file);
-        const toastId = toast.loading("Uploading...");
+
+        const toastId = toast.loading("Uploading image...");
 
         try {
             const response = await fetch('http://localhost:8080/api/users/profile/image', {
                 method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                    // Content-Type දාන්න එපා! FormData යවනකොට Browser එක ඉබේම හදාගන්නවා.
+                },
                 body: formData
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setProfile(prev => prev ? { ...prev, imageUrl: data.imageUrl } : null);
-                toast.success("Updated!", { id: toastId });
+                const newImageUrl = await response.text();
+                // Profile State එක update කරනවා අලුත් පින්තූරයත් එක්ක
+                setProfile(prev => prev ? { ...prev, imageUrl: newImageUrl } : null);
+                toast.success("Profile picture updated!", { id: toastId });
             } else {
-                toast.error("Failed", { id: toastId });
+                toast.error("Failed to upload image", { id: toastId });
             }
         } catch (error) {
-            toast.error("Error", { id: toastId });
+            console.error(error);
+            toast.error("Error uploading image", { id: toastId });
         }
     };
 
@@ -359,8 +378,8 @@ const Account = () => {
                                         key={item.id}
                                         onClick={() => setActiveTab(item.id)}
                                         className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-medium transition-all duration-300 ${activeTab === item.id
-                                                ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 transform scale-[1.02]'
-                                                : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
+                                            ? 'bg-gray-900 text-white shadow-lg shadow-gray-900/20 transform scale-[1.02]'
+                                            : 'text-gray-500 hover:bg-gray-50 hover:text-gray-900'
                                             }`}
                                     >
                                         <span className={`w-1.5 h-1.5 rounded-full transition-colors ${activeTab === item.id ? 'bg-orange-500 scale-150' : 'bg-gray-300'}`}></span>
