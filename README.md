@@ -89,12 +89,6 @@ quick-cart-frontend/
 └── public/            # Static assets and icons
 
 ````
-Snips
 
-1.Home & Hero Sections
-
-2. Shop Section
-
-3. Cart & Place Order Section
 
 Made by M. Nithushi Shavindi (Full Stack Developer)
